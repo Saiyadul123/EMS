@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Hind Siliguri', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: #1e293b;
+    background-color: #f8fafc;
+  }
+}
+
+.font-english {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Islamic Geometric Motif Subtle Pattern */
+.bg-islamic-pattern {
+  background-color: #064e3b;
+  background-image: radial-gradient(#10b981 0.75px, transparent 0.75px), radial-gradient(#10b981 0.75px, #064e3b 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+.bg-islamic-light {
+  background-color: #f8fafc;
+  background-image: radial-gradient(#cbd5e1 0.6px, transparent 0.6px);
+  background-size: 24px 24px;
+}
+

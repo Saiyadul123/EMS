@@ -1,0 +1,142 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isBootstrappedAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == "saiyadul123.bd@gmail.com" ||
+        request.auth.token.email == "superadmin@eidgah.org.bd" ||
+        request.auth.token.email == "admin@eidgah.org.bd"
+      );
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function getUserRole() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? getUserData().role 
+        : null;
+    }
+    
+    function isSuperAdmin() {
+      return isBootstrappedAdmin() || getUserRole() == 'super_admin';
+    }
+    
+    function isAdmin() {
+      return isSuperAdmin() || getUserRole() == 'admin' || isBootstrappedAdmin();
+    }
+    
+    function isCommittee() {
+      return isAdmin() || getUserRole() == 'committee';
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow update: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Public content (Committee, About, Notices, Prayer Info, Projects, Events, Gallery, Settings)
+    match /committee_members/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    match /about_eidgah/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /notices/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /prayer_info/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /projects/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /events/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /gallery/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Donations - anyone can submit (create), Admins can manage
+    match /donations/{id} {
+      allow create: if true;
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
+      allow update, delete: if isAdmin();
+    }
+
+    // Financial records (income, expense, wallets) - Protected for Committee & Admin
+    match /incomes/{id} {
+      allow read: if isCommittee();
+      allow write: if isAdmin();
+    }
+
+    match /expenses/{id} {
+      allow read: if isCommittee();
+      allow write: if isAdmin();
+    }
+
+    match /wallets/{id} {
+      allow read: if isCommittee();
+      allow write: if isAdmin();
+    }
+
+    // Financial Reports - Publicly accessible for transparency
+    match /financial_reports/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Meetings
+    match /meetings/{id} {
+      allow read: if isCommittee();
+      allow write: if isAdmin();
+    }
+
+    // Documents
+    match /documents/{id} {
+      allow read: if resource.data.accessLevel == 'public' || isCommittee();
+      allow write: if isAdmin();
+    }
+
+    // Activity Logs
+    match /activity_logs/{id} {
+      allow read: if isSuperAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
+    // Notifications
+    match /notifications/{id} {
+      allow read: if isAuthenticated() && (resource.data.recipientId == request.auth.uid || resource.data.recipientRole == getUserRole() || resource.data.recipientRole == 'all');
+      allow write: if isAdmin();
+    }
+  }
+}

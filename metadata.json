@@ -1,0 +1,6 @@
+{
+  "name": "Eidgah Management System",
+  "description": "Modern digital management system for an Eidgah field and mosque community in Bangladesh.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
